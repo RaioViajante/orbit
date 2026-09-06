@@ -10,6 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import dev.raioviajante.orbit.job.domain.Job;
+import jakarta.persistence.EntityManager;
 
 @DataJpaTest
 @Testcontainers
@@ -21,6 +22,9 @@ class JobRepositoryTest {
     @Autowired
     private JobRepository jobRepository;
 
+    @Autowired 
+    private EntityManager entityManager;
+
     @Test
     void shouldPersistJob() {
         Job job = new Job("database-backup",
@@ -30,8 +34,24 @@ class JobRepositoryTest {
                           300 );
 
         Job savedJob = jobRepository.save(job);
-        
-        // Verifies that PostgreSQL generated an ID after the job was persisted.
+
+        // Confirms that the database generated an ID for the persisted job.
         assertThat(savedJob.getId()).isNotNull();
+
+        // Forces Hibernate to synchronize pending changes with the database.
+        entityManager.flush();
+
+        // Clears the persistence context so the job must be loaded from the database again.
+        entityManager.clear();
+
+        Job foundJob = jobRepository.findById(savedJob.getId()).orElseThrow();
+
+        // Confirms that the persisted job can be loaded back with the expected state.
+        assertThat(foundJob.getName()).isEqualTo("database-backup");
+        assertThat(foundJob.getCommand()).isEqualTo("./backup.sh");
+        assertThat(foundJob.getCronExpression()).isNull();
+        assertThat(foundJob.getMaxRetries()).isEqualTo(3);
+        assertThat(foundJob.getTimeoutSeconds()).isEqualTo(300);
+        assertThat(foundJob.isEnabled()).isTrue();
     }
 }
