@@ -1,6 +1,6 @@
 package dev.raioviajante.orbit.execution.domain;
 
-public enum ExecutionJava {
+public enum ExecutionStatus {
     QUEUED,
     RUNNING,
     SUCCEEDED,
