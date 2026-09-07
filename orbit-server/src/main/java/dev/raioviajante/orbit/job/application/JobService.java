@@ -57,4 +57,25 @@ public class JobService {
             }
         );
     }
+
+    @Transactional 
+    public Optional<Job> disable(Long id) {
+        return jobRepository.findById(id).map(job ->
+            {
+                job.disable();
+                // The managed entity is persisted automatically by JPA dirty checking.
+                return job;
+            }
+        );
+    }
+
+    @Transactional 
+    public Optional<Job> enable(Long id) {
+        return jobRepository.findById(id).map(job ->
+            {
+                job.enable();
+                return job;
+            }
+        );
+    }
 }

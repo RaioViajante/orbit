@@ -71,4 +71,22 @@ public class JobController {
 
         return JobResponse.from(job);
     }
+
+    @PostMapping("/{id}/disable")
+    @ResponseStatus(HttpStatus.OK)
+    public JobResponse disable(@PathVariable Long id) {
+        Job job = jobService.disable(id).orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found")
+        );
+        return JobResponse.from(job);
+    }
+
+    @PostMapping("/{id}/enable")
+    @ResponseStatus(HttpStatus.OK)
+    public JobResponse enable(@PathVariable Long id) {
+        Job job = jobService.enable(id).orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND,"Job not found")
+        );
+        return JobResponse.from(job);
+    }
 }
