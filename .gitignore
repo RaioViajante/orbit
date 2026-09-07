@@ -1,0 +1,72 @@
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDEs and editors
+# IDEs and editors
+.idea/
+.vscode/
+
+*.iml
+*.ipr
+*.iws
+
+.classpath
+.project
+.settings/
+
+# Java
+*.class
+hs_err_pid*
+replay_pid*
+
+# Maven
+**/target/
+
+# Logs
+*.log
+logs/
+
+# Spring Boot local configuration
+application-local.properties
+application-local.yml
+application-local.yaml
+application-secret.properties
+application-secret.yml
+application-secret.yaml
+
+# Node.js / Angular
+**/node_modules/
+**/.angular/
+**/dist/
+**/coverage/
+**/.cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# pnpm
+.pnpm-store/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+tmp/
+temp/
+
+# Docker local overrides
+compose.override.yml
+compose.override.yaml
+docker-compose.override.yml
+docker-compose.override.yaml
