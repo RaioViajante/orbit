@@ -31,7 +31,8 @@ class JobRepositoryTest {
                           "./backup.sh",
                           null,
                           3,
-                          300 );
+                          300 
+        );
 
         Job savedJob = jobRepository.save(job);
 
