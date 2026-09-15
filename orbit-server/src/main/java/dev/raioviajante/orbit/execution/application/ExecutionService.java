@@ -21,6 +21,10 @@ public class ExecutionService {
     public Optional<Execution> createForJob(Long jobId) {
         return jobRepository.findById(jobId).map(job ->
             {
+                if (!job.isEnabled())
+                    throw new IllegalStateException(
+                            "Disabled jobs cannot create executions"
+                    );
                 Execution execution = new Execution(job);
                 return executionRepository.save(execution);
             }

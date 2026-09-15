@@ -1,6 +1,7 @@
 package dev.raioviajante.orbit.execution.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -85,4 +86,30 @@ class ExecutionServiceTest {
         // No Execution should be persisted when the requested Job does not exist.
         verify(executionRepository, never()).save(any(Execution.class));
     }
+    @Test
+    void shouldRejectExecutionCreationForDisabledJob() {
+    Job job = new Job(
+            "database-backup",
+            "./backup.sh",
+            null,
+            3,
+            300
+    );
+
+    job.disable();
+
+    when(jobRepository.findById(1L))
+            .thenReturn(Optional.of(job));
+
+    assertThatThrownBy(() -> executionService.createForJob(1L))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Disabled jobs cannot create executions");
+
+    verify(jobRepository).findById(1L);
+
+    // A disabled Job must never produce a persisted Execution.
+    verify(executionRepository, never())
+            .save(any(Execution.class));
+    }
 }
+                                                        
