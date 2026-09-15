@@ -1,5 +1,6 @@
 package dev.raioviajante.orbit.execution.application;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -29,5 +30,14 @@ public class ExecutionService {
                 return executionRepository.save(execution);
             }
         );
+    }
+    
+    public Optional<Execution> findById(Long id) {
+        return executionRepository.findById(id);
+    }
+
+    public Optional<List<Execution>> findAllByJobId(Long jobId) {
+        return jobRepository.findById(jobId)
+            .map(job -> executionRepository.findAllByJob_IdOrderByCreatedAtDesc(jobId));
     }
 }

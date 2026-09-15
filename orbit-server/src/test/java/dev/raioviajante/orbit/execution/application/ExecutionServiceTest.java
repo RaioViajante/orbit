@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -99,17 +100,122 @@ class ExecutionServiceTest {
     job.disable();
 
     when(jobRepository.findById(1L))
-            .thenReturn(Optional.of(job));
+        .thenReturn(Optional.of(job));
 
     assertThatThrownBy(() -> executionService.createForJob(1L))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Disabled jobs cannot create executions");
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Disabled jobs cannot create executions");
 
     verify(jobRepository).findById(1L);
 
     // A disabled Job must never produce a persisted Execution.
     verify(executionRepository, never())
-            .save(any(Execution.class));
+        .save(any(Execution.class));
+    }
+
+    @Test
+    void shouldFindExecutionById() {
+        Job job = new Job(
+                "database-backup",
+                "./backup.sh",
+                null,
+                3,
+                300
+        );
+
+        Execution execution = new Execution(job);
+
+        when(executionRepository.findById(1L))
+            .thenReturn(Optional.of(execution));
+
+        Optional<Execution> result = executionService.findById(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.orElseThrow()).isSameAs(execution);
+
+        verify(executionRepository).findById(1L);
+    }
+    @Test
+    void shouldReturnEmptyWhenExecutionDoesNotExist() {
+        when(executionRepository.findById(999L))
+            .thenReturn(Optional.empty());
+
+        Optional<Execution> result = executionService.findById(999L);
+
+        assertThat(result).isEmpty();
+
+        verify(executionRepository).findById(999L);
+    }
+    @Test
+    void shouldFindExecutionsByJobId() {
+        Job job = new Job(
+                "database-backup",
+                "./backup.sh",
+                null,
+                3,
+                300
+        );
+
+        Execution firstExecution = new Execution(job);
+        Execution secondExecution = new Execution(job);
+
+        when(jobRepository.findById(1L))
+            .thenReturn(Optional.of(job));
+
+        when(executionRepository.findAllByJob_IdOrderByCreatedAtDesc(1L))
+            .thenReturn(List.of(secondExecution, firstExecution));
+
+        Optional<List<Execution>> result =
+            executionService.findAllByJobId(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.orElseThrow())
+            .containsExactly(secondExecution, firstExecution);
+
+        verify(jobRepository).findById(1L);
+        verify(executionRepository)
+            .findAllByJob_IdOrderByCreatedAtDesc(1L);
+    }
+
+    @Test
+    void shouldReturnEmptyExecutionListForExistingJob() {
+        Job job = new Job(
+                "database-backup",
+                "./backup.sh",
+                null,
+                3,
+                300
+        );
+
+        when(jobRepository.findById(1L))
+            .thenReturn(Optional.of(job));
+
+        when(executionRepository.findAllByJob_IdOrderByCreatedAtDesc(1L))
+            .thenReturn(List.of());
+
+        Optional<List<Execution>> result = executionService.findAllByJobId(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.orElseThrow()).isEmpty();
+
+        verify(executionRepository)
+            .findAllByJob_IdOrderByCreatedAtDesc(1L);
+    }   
+
+    @Test
+    void shouldReturnEmptyWhenFindingExecutionsForMissingJob() {
+        when(jobRepository.findById(999L))
+            .thenReturn(Optional.empty());
+
+        Optional<List<Execution>> result = executionService.findAllByJobId(999L);
+
+        assertThat(result).isEmpty();
+
+        verify(jobRepository).findById(999L);
+
+        // The execution history must not be queried when the Job does not exist.
+        verify(executionRepository, never())
+            .findAllByJob_IdOrderByCreatedAtDesc(999L);
     }
 }
                                                         
